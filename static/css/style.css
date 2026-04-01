@@ -1,0 +1,322 @@
+/* ─── Global ──────────────────────────────────────────────────────────── */
+body {
+    font-family: 'Source Sans Pro', -apple-system, sans-serif;
+    color: #24292f;
+    background: #ffffff;
+}
+
+.section {
+    padding: 2.5rem 0;
+}
+
+hr.divider {
+    border: 0;
+    border-top: 1px solid #e5e7eb;
+    margin: 0 auto;
+    max-width: 900px;
+}
+
+/* ─── Hero / Title ────────────────────────────────────────────────────── */
+.hero {
+    padding: 3rem 0 1.5rem;
+}
+
+.title {
+    font-size: 3.2rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 1rem;
+}
+
+/* ─── Fourier Title Animation ────────────────────────────────────────── */
+#fourier-canvas {
+    display: block;
+    margin: 0 auto 0.3rem;
+    max-width: 100%;
+}
+
+.subtitle {
+    font-weight: 400;
+    font-size: 1.6rem;
+    color: #57606a;
+}
+
+.authors {
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+}
+
+.author {
+    margin: 0 0.3rem;
+}
+
+.affiliations {
+    font-size: 0.95rem;
+    color: #6e7781;
+    margin-bottom: 0.4rem;
+}
+
+.equal-contrib {
+    font-size: 0.85rem;
+    color: #8b949e;
+    margin-bottom: 1.2rem;
+    font-style: italic;
+}
+
+.link-buttons .btn {
+    margin: 0.25rem 0.3rem;
+    border-radius: 20px;
+    padding: 0.35rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.link-buttons .btn i {
+    margin-right: 0.3rem;
+}
+
+/* ─── Section Titles ──────────────────────────────────────────────────── */
+.section-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+/* ─── Abstract ────────────────────────────────────────────────────────── */
+.abstract-text {
+    text-align: justify;
+    font-size: 1.05rem;
+    line-height: 1.7;
+}
+
+.text-justified {
+    text-align: justify;
+    line-height: 1.65;
+}
+
+/* ─── BibTeX ──────────────────────────────────────────────────────────── */
+.bibtex {
+    background: #f6f8fa;
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    font-size: 0.85rem;
+    overflow-x: auto;
+}
+
+.bibtex code {
+    color: #24292f;
+}
+
+/* ─── 4-Way Comparison Slider ────────────────────────────────────────── */
+.quad-compare {
+    position: relative;
+    overflow: hidden;
+    cursor: ew-resize;
+    border-radius: 8px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.qc-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.qc-layer:first-child {
+    position: relative; /* first layer sets the aspect ratio */
+}
+
+.qc-layer img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.qc-layer .qc-label {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.65);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 5;
+}
+
+.qc-handle {
+    position: absolute;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: #ffffff;
+    transform: translateX(-50%);
+    z-index: 20;
+    cursor: ew-resize;
+    box-shadow: 0 0 6px rgba(0,0,0,0.4);
+}
+
+.qc-handle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -10px;
+    width: 23px;
+    height: 100%;
+}
+
+.qc-handle-knob {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    color: #555;
+    pointer-events: none;
+}
+
+/* Scene selector tabs */
+.scene-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.scene-tabs button {
+    border: 1px solid #d0d7de;
+    background: #f6f8fa;
+    color: #24292f;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.scene-tabs button:hover {
+    background: #eaeef2;
+}
+
+.scene-tabs button.active {
+    background: #0969da;
+    color: #fff;
+    border-color: #0969da;
+}
+
+/* ─── Results Tables ─────────────────────────────────────────────────── */
+.results-table {
+    font-size: 0.82rem;
+    border-collapse: collapse;
+}
+
+.results-table th,
+.results-table td {
+    text-align: center;
+    padding: 4px 6px;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.results-table th {
+    background: #f6f8fa;
+    font-weight: 600;
+    border-bottom: 2px solid #d0d7de;
+}
+
+.results-table td:first-child,
+.results-table th:first-child {
+    text-align: left;
+    font-weight: 600;
+}
+
+.results-table .border-left {
+    border-left: 2px solid #d0d7de;
+}
+
+.results-table .best,
+td.best {
+    background: #fde2e2;
+    font-weight: 700;
+}
+
+.results-table .second,
+td.second {
+    background: #fff3e0;
+}
+
+.results-table .ours-row {
+    background: #f0f7ff;
+}
+
+.best-cell {
+    background: #fde2e2;
+    padding: 1px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.second-cell {
+    background: #fff3e0;
+    padding: 1px 8px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+}
+
+/* ─── 3D Mesh Viewer ─────────────────────────────────────────────────── */
+.mesh-viewer {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f6f8fa;
+    border: 1px solid #e5e7eb;
+    cursor: grab;
+}
+
+.mesh-viewer:active {
+    cursor: grabbing;
+}
+
+.mesh-viewer canvas {
+    display: block;
+    border-radius: 8px;
+}
+
+/* ─── Videos ──────────────────────────────────────────────────────────── */
+video {
+    border-radius: 8px;
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .title {
+        font-size: 2.0rem;
+    }
+    .subtitle {
+        font-size: 1.1rem;
+    }
+    .section {
+        padding: 1.5rem 0;
+    }
+}

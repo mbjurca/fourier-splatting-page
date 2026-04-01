@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fourier Splatting</title>
+
+    <!-- Bootstrap 4 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Academicons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css">
+    <!-- MathJax -->
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+    <!-- Three.js for 3D mesh viewer -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+
+<!-- ─── Title ─────────────────────────────────────────────────────────── -->
+<section class="hero">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 text-center">
+                <h1 class="title">
+                    <canvas id="fourier-canvas"></canvas>
+                    <br>
+                    <span class="subtitle">Generalized Fourier Encoded Primitives for Scalable Radiance Fields</span>
+                </h1>
+
+                <div class="authors">
+                    <span class="author">Mihnea-Bogdan Jurca<sup>1,2,*</sup></span>,
+                    <span class="author">Bert Van hauwermeiren<sup>1,*</sup></span>,
+                    <span class="author">Adrian Munteanu<sup>1</sup></span>
+                </div>
+                <div class="equal-contrib">
+                    <sup>*</sup>Equal contribution
+                </div>
+                <div class="affiliations">
+                    <span><sup>1</sup>Vrije Universiteit Brussel</span>&emsp;
+                    <span><sup>2</sup>Technical University of Cluj-Napoca</span>
+                </div>
+
+                <div class="link-buttons">
+                    <a href="https://arxiv.org/abs/2603.19834" class="btn btn-outline-dark btn-sm">
+                        <i class="ai ai-arxiv"></i> Paper
+                    </a>
+                    <a href="#" class="btn btn-outline-dark btn-sm disabled" style="opacity:0.6;">
+                        <i class="fab fa-github"></i> Code (soon)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── Method Overview (first, so the reader understands) ────────────── -->
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <img src="static/images/method_overview.png" alt="Method overview"
+                     class="w-100 mb-3 rounded">
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── Abstract ──────────────────────────────────────────────────────── -->
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h2 class="section-title">Abstract</h2>
+                <p class="abstract-text">
+                    Novel view synthesis has recently been revolutionized by 3D Gaussian
+                    Splatting (3DGS), which enables real-time rendering through explicit
+                    primitive rasterization. However, existing methods tie visual fidelity
+                    strictly to the number of primitives: quality downscaling is achieved
+                    only through pruning primitives. We propose the first inherently
+                    scalable primitive for radiance field rendering. <em>Fourier Splatting</em>
+                    employs scalable primitives with arbitrary closed shapes obtained by
+                    parameterizing planar surfels with Fourier encoded descriptors. This
+                    formulation allows a single trained model to be rendered at varying
+                    levels of detail simply by truncating Fourier coefficients at runtime.
+                    To facilitate stable optimization, we employ a straight-through
+                    estimator for gradient extension beyond the primitive boundary, and
+                    introduce HYDRA, a densification strategy that decomposes complex
+                    primitives into simpler constituents within the MCMC framework. Our
+                    method achieves state-of-the-art rendering quality among
+                    planar-primitive frameworks and comparable perceptual metrics compared
+                    to leading volumetric representations on standard benchmarks, providing
+                    a versatile solution for bandwidth-constrained high-fidelity rendering.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── Fourier Buildup ───────────────────────────────────────────────── -->
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h2 class="section-title">Fourier Boundary Construction</h2>
+                <p class="text-center text-muted mb-4">
+                    Starting from a circle ($K\!=\!1$), each additional frequency component
+                    progressively deforms the boundary into complex shapes.
+                </p>
+                <video class="w-100" autoplay loop muted playsinline>
+                    <source src="static/videos/fourier_buildup.mp4" type="video/mp4">
+                </video>
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── HYDRA Densification ───────────────────────────────────────────── -->
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h2 class="section-title">HYDRA Densification</h2>
+                <p class="text-center text-muted mb-4">
+                    A learned MLP detects lobes in the parent boundary, then predicts
+                    child primitives that together reconstruct the original shape.
+                </p>
+                <video class="w-100" autoplay loop muted playsinline>
+                    <source src="static/videos/lobe_split.mp4" type="video/mp4">
+                </video>
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── Visual Comparisons ────────────────────────────────────────────── -->
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h2 class="section-title">Visual Comparisons</h2>
+                <p class="text-center text-muted mb-3">
+                    Drag the dividers to compare all four methods simultaneously.
+                </p>
+
+                <!-- Scene selector -->
+                <div class="scene-tabs" data-target="main-comparison">
+                    <button class="active" data-scene="room_00035">Room 1</button>
+                    <button data-scene="room_00014">Room 2</button>
+                    <button data-scene="bonsai_00024">Bonsai 1</button>
+                    <button data-scene="bonsai_00013">Bonsai 2</button>
+                    <button data-scene="kitchen_00007">Kitchen 1</button>
+                    <button data-scene="kitchen_00015">Kitchen 2</button>
+                    <button data-scene="counter_00008">Counter</button>
+                    <button data-scene="garden_00004">Garden</button>
+                </div>
+
+                <!-- 4-way comparison slider -->
+                <div class="quad-compare" id="main-comparison">
+                    <div class="qc-layer">
+                        <img src="static/images/comparisons/room_00035_ours.png" alt="Ours"
+                             data-method="ours"
+                             data-src-template="static/images/comparisons/{scene}_ours.png">
+                        <div class="qc-label">Ours</div>
+                    </div>
+                    <div class="qc-layer">
+                        <img src="static/images/comparisons/room_00035_2dgs.png" alt="2DGS"
+                             data-method="2dgs"
+                             data-src-template="static/images/comparisons/{scene}_2dgs.png">
+                        <div class="qc-label">2DGS</div>
+                    </div>
+                    <div class="qc-layer">
+                        <img src="static/images/comparisons/room_00035_3dgs.png" alt="3DGS"
+                             data-method="3dgs"
+                             data-src-template="static/images/comparisons/{scene}_3dgs.png">
+                        <div class="qc-label">3DGS</div>
+                    </div>
+                    <div class="qc-layer">
+                        <img src="static/images/comparisons/room_00035_triangle_splatting.png" alt="Triangle Splatting"
+                             data-method="triangle_splatting"
+                             data-src-template="static/images/comparisons/{scene}_triangle_splatting.png">
+                        <div class="qc-label">Tri. Splat.</div>
+                    </div>
+                    <div class="qc-handle"><div class="qc-handle-knob"><i class="fas fa-grip-lines-vertical"></i></div></div>
+                    <div class="qc-handle"><div class="qc-handle-knob"><i class="fas fa-grip-lines-vertical"></i></div></div>
+                    <div class="qc-handle"><div class="qc-handle-knob"><i class="fas fa-grip-lines-vertical"></i></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── Qualitative close-ups ─────────────────────────────────────────── -->
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h2 class="section-title">Qualitative Results</h2>
+                <p class="text-center text-muted mb-4">
+                    Close-up comparisons on Tanks &amp; Temples and Mip-NeRF 360 scenes.
+                </p>
+                <img src="static/images/qual_main.png" alt="Qualitative comparison"
+                     class="w-100 rounded mb-2">
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── Quantitative Results ──────────────────────────────────────────── -->
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-11">
+                <h2 class="section-title">Quantitative Results</h2>
+                <p class="text-center text-muted mb-4">
+                    Among planar primitives: <span class="best-cell">best</span>,
+                    <span class="second-cell">second best</span>.
+                </p>
+
+                <!-- Main results table -->
+                <div class="table-responsive mb-5">
+                <table class="table table-sm results-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Method</th>
+                            <th colspan="3" class="text-center border-left">Outdoor Mip-NeRF 360</th>
+                            <th colspan="3" class="text-center border-left">Indoor Mip-NeRF 360</th>
+                            <th colspan="3" class="text-center border-left">Average Mip-NeRF 360</th>
+                            <th colspan="3" class="text-center border-left">Tanks &amp; Temples</th>
+                        </tr>
+                        <tr>
+                            <th class="border-left">PSNR&uarr;</th><th>SSIM&uarr;</th><th>LPIPS&darr;</th>
+                            <th class="border-left">PSNR&uarr;</th><th>SSIM&uarr;</th><th>LPIPS&darr;</th>
+                            <th class="border-left">PSNR&uarr;</th><th>SSIM&uarr;</th><th>LPIPS&darr;</th>
+                            <th class="border-left">PSNR&uarr;</th><th>SSIM&uarr;</th><th>LPIPS&darr;</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="text-muted"><td colspan="13" class="small font-italic pt-2 pb-0" style="border:0">Volumetric methods</td></tr>
+                        <tr>
+                            <td>3DGS</td>
+                            <td>24.64</td><td>0.731</td><td>0.234</td>
+                            <td>30.41</td><td>0.920</td><td>0.189</td>
+                            <td>26.98</td><td>0.813</td><td>0.214</td>
+                            <td>23.14</td><td>0.841</td><td>0.183</td>
+                        </tr>
+                        <tr>
+                            <td>3DGS-MCMC</td>
+                            <td>25.51</td><td>0.760</td><td>0.210</td>
+                            <td>31.08</td><td>0.917</td><td>0.208</td>
+                            <td>27.84</td><td>0.850</td><td>0.210</td>
+                            <td>24.29</td><td>0.860</td><td>0.190</td>
+                        </tr>
+                        <tr class="text-muted"><td colspan="13" class="small font-italic pt-2 pb-0" style="border:0">Planar methods</td></tr>
+                        <tr>
+                            <td>2DGS</td>
+                            <td class="second">24.34</td><td>0.717</td><td>0.246</td>
+                            <td>30.40</td><td>0.916</td><td>0.195</td>
+                            <td>26.84</td><td>0.804</td><td>0.252</td>
+                            <td>23.13</td><td>0.831</td><td>0.212</td>
+                        </tr>
+                        <tr>
+                            <td>BBSplat</td>
+                            <td>23.55</td><td>0.669</td><td>0.281</td>
+                            <td>30.62</td><td>0.921</td><td>0.178</td>
+                            <td>26.49</td><td>0.778</td><td>0.236</td>
+                            <td class="best">25.12</td><td class="best">0.868</td><td class="second">0.172</td>
+                        </tr>
+                        <tr>
+                            <td>Tri. Splat.</td>
+                            <td>24.27</td><td class="second">0.722</td><td class="best">0.217</td>
+                            <td class="second">30.80</td><td class="second">0.928</td><td class="best">0.160</td>
+                            <td class="second">26.98</td><td class="second">0.812</td><td class="best">0.191</td>
+                            <td>23.14</td><td class="second">0.857</td><td>0.143</td>
+                        </tr>
+                        <tr class="ours-row">
+                            <td><strong>Ours</strong></td>
+                            <td class="best"><strong>24.62</strong></td><td class="best"><strong>0.739</strong></td><td class="best"><strong>0.217</strong></td>
+                            <td class="best"><strong>31.44</strong></td><td class="best"><strong>0.930</strong></td><td class="second">0.162</td>
+                            <td class="best"><strong>27.65</strong></td><td class="best"><strong>0.824</strong></td><td class="second">0.193</td>
+                            <td class="second">24.15</td><td class="best"><strong>0.868</strong></td><td class="best"><strong>0.137</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── Level of Detail ──────────────────────────────────────────────── -->
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h2 class="section-title">Level-of-Detail Scaling</h2>
+                <p class="text-center text-muted mb-4">
+                    A single trained model rendered at varying levels of detail by
+                    truncating Fourier coefficients at runtime vs. Octree-GS pruning levels.
+                </p>
+
+                <!-- Scene selector -->
+                <div class="text-center mb-3">
+                    <div class="btn-group btn-group-sm" id="lod-scene-selector">
+                        <button class="btn btn-outline-secondary active" data-scene="truck">Truck</button>
+                        <button class="btn btn-outline-secondary" data-scene="train">Train</button>
+                    </div>
+                </div>
+
+                <!-- LoD slider -->
+                <div class="text-center mb-2">
+                    <label class="font-weight-bold" style="font-size:1.1rem;">
+                        LoD Level: <span id="lod-level-display" style="color:#0969da;">1</span> / 6
+                    </label>
+                    <div class="d-flex align-items-center justify-content-center" style="gap:12px;">
+                        <span class="text-muted small">Low</span>
+                        <input type="range" id="lod-slider" min="1" max="6" value="1" step="1"
+                               style="width:300px; cursor:pointer;">
+                        <span class="text-muted small">High</span>
+                    </div>
+                </div>
+
+                <!-- Side by side -->
+                <div class="row" id="lod-comparison">
+                    <div class="col-md-6 mb-2">
+                        <p class="text-center font-weight-bold mb-1" style="color:#0969da;">Octree-GS</p>
+                        <img id="lod-octree-img" src="static/images/scaling/truck_octree_lod1.png"
+                             alt="Octree-GS" class="w-100 rounded">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <p class="text-center font-weight-bold mb-1" style="color:#e63946;">Fourier Splatting (Ours)</p>
+                        <img id="lod-fourier-img" src="static/images/scaling/truck_fourier_lod1.png"
+                             alt="Fourier Splatting" class="w-100 rounded">
+                    </div>
+                </div>
+
+                <!-- Auto-play toggle -->
+                <div class="text-center mt-2">
+                    <button class="btn btn-sm btn-outline-primary" id="lod-autoplay">
+                        <i class="fas fa-play"></i> Auto-play
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── DTU Interactive Meshes ────────────────────────────────────────── -->
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h2 class="section-title">Mesh Reconstruction (DTU)</h2>
+                <p class="text-center text-muted mb-4">
+                    Interact with the reconstructed meshes. Drag to rotate, scroll to zoom.
+                </p>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="mesh-viewer" data-mesh="static/meshes/scan24.ply"></div>
+                        <p class="text-center text-muted mt-1">Scan 24</p>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="mesh-viewer" data-mesh="static/meshes/scan37.ply"></div>
+                        <p class="text-center text-muted mt-1">Scan 37</p>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="mesh-viewer" data-mesh="static/meshes/scan69.ply"></div>
+                        <p class="text-center text-muted mt-1">Scan 69</p>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="mesh-viewer" data-mesh="static/meshes/scan97.ply"></div>
+                        <p class="text-center text-muted mt-1">Scan 97</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── Normal Maps ──────────────────────────────────────────────────── -->
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h2 class="section-title">Surface Normals (Mip-NeRF 360)</h2>
+                <p class="text-center text-muted mb-4">
+                    Qualitative surface alignment on outdoor Mip-NeRF 360 scenes.
+                </p>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <img src="static/images/normals/bicycle_normal.png" alt="Bicycle normals" class="w-100 rounded">
+                        <p class="text-center text-muted mt-1">Bicycle</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <img src="static/images/normals/garden_normal.png" alt="Garden normals" class="w-100 rounded">
+                        <p class="text-center text-muted mt-1">Garden</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <img src="static/images/normals/treehill_normal.png" alt="Treehill normals" class="w-100 rounded">
+                        <p class="text-center text-muted mt-1">Treehill</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <img src="static/images/normals/stump_normal.png" alt="Stump normals" class="w-100 rounded">
+                        <p class="text-center text-muted mt-1">Stump</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── BibTeX ────────────────────────────────────────────────────────── -->
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h2 class="section-title">Citation</h2>
+                <pre class="bibtex"><code>@article{jurca2026fourier,
+  title={Fourier Splatting: Generalized Fourier encoded primitives for scalable radiance fields},
+  author={Jurca, Mihnea-Bogdan and Munteanu, Adrian and others},
+  journal={arXiv preprint arXiv:2603.19834},
+  year={2026}
+}</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── Visitor Globe ──────────────────────────────────────────────────── -->
+<section class="section pb-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 text-center">
+                <script type="text/javascript" src="//rf.revolvermaps.com/0/0/8.js?i=REPLACE_WITH_YOUR_ID&amp;m=0&amp;c=ff0000&amp;cr1=ffffff&amp;f=arial&amp;l=33&amp;bv=80&amp;lx=-420&amp;ly=420&amp;hi=8&amp;he=2&amp;hc=ff0000&amp;rs=40" async="async"></script>
+                <p class="text-muted small mt-2">Visitor statistics</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── Footer ────────────────────────────────────────────────────────── -->
+<footer class="text-center pb-4">
+    <p class="text-muted small">
+        Website template adapted from <a href="https://dreamfusion3d.github.io/">DreamFusion</a>.
+    </p>
+</footer>
+
+<!-- ─── Scripts ───────────────────────────────────────────────────────── -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="static/js/before-after.js"></script>
+<script src="static/js/lod-slider.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
+<script src="static/js/fourier-title.js"></script>
+<script type="module" src="static/js/mesh-viewer.js"></script>
+</body>
+</html>
