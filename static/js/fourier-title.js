@@ -7,7 +7,7 @@
  */
 (function () {
     var TEXT = 'Fourier Splatting:';
-    var FONT_URL = 'static/NotoSansBold.ttf';
+    var FONT_URL = 'static/fonts/NotoSansBold.ttf';
     var N_SAMPLES = 256;
     var K_MAX = 50;
 
@@ -152,17 +152,18 @@
         return '#'+((1<<24)|(Math.round(ar+(br-ar)*t)<<16)|(Math.round(ag+(bg-ag)*t)<<8)|Math.round(ab+(bb-ab)*t)).toString(16).slice(1);
     }
 
+    var fallback = document.getElementById('fourier-fallback');
+
     // ── Load font and run ──
-    if (typeof opentype === 'undefined') { canvas.style.display = 'none'; return; }
+    if (typeof opentype === 'undefined') { return; } // fallback text stays visible
 
     opentype.load(FONT_URL, function (err, font) {
-        if (err || !font) {
-            canvas.style.display = 'none';
-            var fb = document.createElement('span');
-            fb.textContent = TEXT; fb.style.cssText = 'font-size:3.2rem;font-weight:700';
-            canvas.parentElement.insertBefore(fb, canvas);
-            return;
-        }
+        if (err || !font) { return; } // fallback text stays visible
+
+        // Hide fallback, show canvas
+        if (fallback) fallback.style.display = 'none';
+        canvas.style.display = 'block';
+        canvas.style.margin = '0 auto';
 
         var fontSize = 90;
         var ascender = font.ascender/font.unitsPerEm*fontSize;
