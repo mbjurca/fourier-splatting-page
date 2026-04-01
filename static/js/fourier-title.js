@@ -7,7 +7,7 @@
  */
 (function () {
     var TEXT = 'Fourier Splatting:';
-    var FONT_URL = 'static/fonts/SourceSans3-Bold.ttf';
+    var FONT_URL = 'static/NotoSansBold.ttf';
     var N_SAMPLES = 256;
     var K_MAX = 50;
 
